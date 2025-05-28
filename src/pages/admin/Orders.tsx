@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useSupabase } from '../../contexts/SupabaseContext';
-import { format } from 'date-fns';
+import { PostgrestError } from '@supabase/supabase-js';
+import { format, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Eye, RefreshCwIcon } from 'lucide-react';
+import { Eye, RefreshCwIcon, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useSupabase } from '../../contexts/SupabaseContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Order {
-  id: number;
+  id: string;
   customer_name: string;
   customer_phone: string;
   total: number;
@@ -15,7 +17,7 @@ interface Order {
 }
 
 interface OrderItem {
-  id: number;
+  id: string;
   product_name: string;
   quantity: number;
   price: number;
@@ -24,11 +26,21 @@ interface OrderItem {
 
 export default function Orders() {
   const { supabase } = useSupabase();
+  const { isDarkMode } = useTheme();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteOption, setDeleteOption] = useState('30');
+  
+  // Classes condicionais baseadas no tema
+  const cardBg = isDarkMode ? 'bg-[#2C1A10]' : 'bg-white';
+  const cardBorder = isDarkMode ? 'border-[#3C2A1F]' : 'border-gray-200';
+  const textColor = isDarkMode ? 'text-gray-100' : 'text-gray-900';
+  const headerColor = isDarkMode ? 'text-gray-100' : 'text-gray-900';
+  const modalBg = isDarkMode ? 'bg-[#2C1A10]' : 'bg-white';
   
   useEffect(() => {
     fetchOrders();
@@ -49,15 +61,20 @@ export default function Orders() {
       }
       
       setOrders(data || []);
-    } catch (error: any) {
-      console.error('Erro ao buscar pedidos:', error);
-      setError('Falha ao carregar pedidos. Por favor, tente novamente.');
+    } catch (error) {
+      if (error instanceof PostgrestError) {
+        console.error('Erro ao buscar pedidos:', error.message);
+        setError(`Falha ao carregar pedidos: ${error.message}`);
+      } else {
+        console.error('Erro ao buscar pedidos:', error);
+        setError('Falha ao carregar pedidos. Por favor, tente novamente.');
+      }
     } finally {
       setLoading(false);
     }
   }
   
-  async function fetchOrderDetails(orderId: number) {
+  async function fetchOrderDetails(orderId: string) {
     try {
       const { data, error } = await supabase
         .from('order_items')
@@ -91,7 +108,7 @@ export default function Orders() {
     setShowDetails(true);
   }
   
-  async function handleStatusChange(orderId: number, newStatus: string) {
+  async function handleStatusChange(orderId: string, newStatus: string) {
     try {
       const { error } = await supabase
         .from('orders')
@@ -113,6 +130,81 @@ export default function Orders() {
       
     } catch (error) {
       console.error('Erro ao atualizar status do pedido:', error);
+    }
+  }
+  
+  async function handleDeleteHistory() {
+    try {
+      let query = supabase
+        .from('orders')
+        .select('id, created_at, status');
+
+      // Se não for "all", aplica o filtro de data
+      if (deleteOption !== 'all') {
+        const daysAgo = parseInt(deleteOption);
+        const cutoffDate = subDays(new Date(), daysAgo).toISOString();
+        console.log('Data de corte:', cutoffDate);
+        query = query.lt('created_at', cutoffDate);
+      }
+
+      // Buscar os IDs dos pedidos que serão deletados
+      const { data: ordersToDelete, error: fetchError } = await query;
+
+      console.log('Pedidos encontrados para deletar:', ordersToDelete);
+
+      if (fetchError) {
+        console.error('Erro ao buscar pedidos:', fetchError);
+        throw fetchError;
+      }
+
+      if (!ordersToDelete || ordersToDelete.length === 0) {
+        console.log('Nenhum pedido encontrado para excluir');
+        setError('Nenhum pedido encontrado para excluir neste período.');
+        setShowDeleteModal(false);
+        return;
+      }
+
+      const orderIds = ordersToDelete.map(order => order.id);
+      console.log('IDs dos pedidos para deletar:', orderIds);
+
+      // Deletar os itens dos pedidos primeiro
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .delete()
+        .in('order_id', orderIds);
+
+      if (itemsError) {
+        console.error('Erro ao deletar itens:', itemsError);
+        throw itemsError;
+      }
+
+      console.log('Itens dos pedidos deletados com sucesso');
+
+      // Depois deletar os pedidos
+      const { error: ordersError } = await supabase
+        .from('orders')
+        .delete()
+        .in('id', orderIds);
+
+      if (ordersError) {
+        console.error('Erro ao deletar pedidos:', ordersError);
+        throw ordersError;
+      }
+
+      console.log('Pedidos deletados com sucesso');
+
+      // Atualiza a lista de pedidos e fecha o modal
+      await fetchOrders();
+      setShowDeleteModal(false);
+      setError(null); // Limpa qualquer erro anterior
+    } catch (error) {
+      if (error instanceof PostgrestError) {
+        console.error('Erro ao excluir histórico:', error.message);
+        setError(`Falha ao excluir histórico: ${error.message}`);
+      } else {
+        console.error('Erro ao excluir histórico:', error);
+        setError('Falha ao excluir histórico. Por favor, tente novamente.');
+      }
     }
   }
   
@@ -153,14 +245,23 @@ export default function Orders() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Histórico de Pedidos</h1>
-        <button 
-          onClick={fetchOrders}
-          className="flex items-center gap-2 bg-[#46342e] hover:bg-[#5a443c] text-white px-3 py-1.5 rounded transition-colors"
-        >
-          <RefreshCwIcon size={16} className={loading ? 'animate-spin' : ''} />
-          Atualizar
-        </button>
+        <h1 className={`text-2xl font-bold ${headerColor}`}>Histórico de Pedidos</h1>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setShowDeleteModal(true)}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded transition-colors"
+          >
+            <Trash2 size={16} />
+            Limpar Histórico
+          </button>
+          <button 
+            onClick={fetchOrders}
+            className="flex items-center gap-2 bg-[#e67e22] hover:bg-[#d35400] text-white px-3 py-1.5 rounded transition-colors"
+          >
+            <RefreshCwIcon size={16} className={loading ? 'animate-spin' : ''} />
+            Atualizar
+          </button>
+        </div>
       </div>
       
       {error && (
@@ -264,6 +365,54 @@ export default function Orders() {
                 className="px-4 py-2 bg-[#46342e] hover:bg-[#5a443c] rounded transition-colors"
               >
                 Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal de Confirmação de Exclusão do Histórico */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className={`${modalBg} p-6 rounded-lg shadow-lg max-w-md w-full z-10`}>
+            <h3 className={`text-lg font-semibold mb-4 ${headerColor}`}>Limpar Histórico de Pedidos</h3>
+            <p className={`mb-4 ${textColor}`}>
+              Selecione o período de pedidos que deseja excluir. Esta ação não pode ser desfeita e não afetará pedidos pendentes.
+            </p>
+            
+            <div className="mb-6">
+              <label htmlFor="deleteOption" className={`block mb-2 text-sm ${textColor}`}>
+                Excluir pedidos mais antigos que:
+              </label>
+              <select
+                id="deleteOption"
+                value={deleteOption}
+                onChange={(e) => setDeleteOption(e.target.value)}
+                className={`w-full p-2 ${cardBg} border ${cardBorder} rounded focus:outline-none focus:border-[#e67e22]`}
+              >
+                <option value="7">7 dias</option>
+                <option value="15">15 dias</option>
+                <option value="30">30 dias</option>
+                <option value="60">60 dias</option>
+                <option value="90">90 dias</option>
+                <option value="180">6 meses</option>
+                <option value="365">1 ano</option>
+                <option value="all">Tudo</option>
+              </select>
+            </div>
+            
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className={`px-4 py-2 ${cardBg} border ${cardBorder} rounded hover:bg-opacity-80 transition-colors`}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteHistory}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+              >
+                Confirmar Exclusão
               </button>
             </div>
           </div>

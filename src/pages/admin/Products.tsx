@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { ImageIcon, Pencil, PlusIcon, Star, Trash2, XIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useSupabase } from '../../contexts/SupabaseContext';
-import { PlusIcon, Pencil, Trash2, XIcon, ImageIcon, Star } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface Product {
@@ -24,7 +24,7 @@ interface Category {
 
 export default function Products() {
   const { supabase } = useSupabase();
-  const { theme } = useTheme();
+  const { isDarkMode } = useTheme();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,16 +51,16 @@ export default function Products() {
   const [oldPrice, setOldPrice] = useState('');
   
   // Classes condicionais baseadas no tema
-  const cardBg = theme === 'dark' ? 'bg-[#2a211c]' : 'bg-white';
-  const cardBorder = theme === 'dark' ? 'border-[#5a443c]' : 'border-gray-200';
-  const inputBg = theme === 'dark' ? 'bg-[#46342e]' : 'bg-gray-50';
-  const inputBorder = theme === 'dark' ? 'border-[#5a443c]' : 'border-gray-300';
-  const hoverBg = theme === 'dark' ? 'hover:bg-[#46342e]' : 'hover:bg-gray-100';
-  const tableBorderColor = theme === 'dark' ? 'border-[#5a443c]' : 'border-gray-200';
-  const textColor = theme === 'dark' ? 'text-white' : 'text-gray-900';
-  const mutedTextColor = theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
-  const headerColor = theme === 'dark' ? 'text-white' : 'text-gray-900';
-  const modalBg = theme === 'dark' ? 'bg-[#2a211c]' : 'bg-white';
+  const cardBg = isDarkMode ? 'bg-[#2C1A10]' : 'bg-white';
+  const cardBorder = isDarkMode ? 'border-[#3C2A1F]' : 'border-gray-200';
+  const inputBg = isDarkMode ? 'bg-[#3C2A1F]' : 'bg-gray-50';
+  const inputBorder = isDarkMode ? 'border-[#3C2A1F]' : 'border-gray-300';
+  const hoverBg = isDarkMode ? 'hover:bg-[#3C2A1F]' : 'hover:bg-gray-100';
+  const tableBorderColor = isDarkMode ? 'border-[#3C2A1F]' : 'border-gray-200';
+  const textColor = isDarkMode ? 'text-gray-100' : 'text-gray-900';
+  const mutedTextColor = isDarkMode ? 'text-gray-400' : 'text-gray-500';
+  const headerColor = isDarkMode ? 'text-gray-100' : 'text-gray-900';
+  const modalBg = isDarkMode ? 'bg-[#2C1A10]' : 'bg-white';
   const modalOverlayBg = 'bg-black bg-opacity-50';
   
   useEffect(() => {

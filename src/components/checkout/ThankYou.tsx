@@ -1,16 +1,18 @@
 import React from 'react';
-import { useTheme } from '../../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ThankYouProps {
   customerName: string;
   token: string;
+  onClose: () => void;
 }
 
 export const ThankYou: React.FC<ThankYouProps> = ({
   customerName,
   token,
+  onClose,
 }) => {
   const { isDarkMode } = useTheme();
   const { setUser } = useAuth();
@@ -56,7 +58,7 @@ export const ThankYou: React.FC<ThankYouProps> = ({
         </p>
       </div>
 
-      <div className={`p-4 rounded-lg ${
+      <div className={`p-6 rounded-lg mb-6 ${
         isDarkMode ? 'bg-[#3C2A1F]' : 'bg-gray-100'
       }`}>
         <h3 className="font-semibold mb-2">Instruções:</h3>
@@ -78,6 +80,7 @@ export const ThankYou: React.FC<ThankYouProps> = ({
 
       <Link
         to="/pedidos"
+        onClick={onClose}
         className="block w-full py-3 mt-6 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
       >
         Ver Meus Pedidos

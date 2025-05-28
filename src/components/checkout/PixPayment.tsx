@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useCart } from '../../contexts/CartContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { orderService } from '../../services/orderService';
 import QRCode from 'qrcode';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { orderService } from '../../services/orderService';
 
 interface PixPaymentProps {
   amount: number;
@@ -17,7 +17,6 @@ export const PixPayment: React.FC<PixPaymentProps> = ({
   onPaymentComplete,
 }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [orderToken, setOrderToken] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isDarkMode } = useTheme();
@@ -25,70 +24,56 @@ export const PixPayment: React.FC<PixPaymentProps> = ({
   const { setUser } = useAuth();
 
   useEffect(() => {
-    const generatePixQRCode = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // Criar o pedido no banco de dados
-        const order = await orderService.createOrder(customerName, cartItems);
-        if (!order.token) {
-          throw new Error('Token do pedido não foi gerado');
-        }
-        
-        setOrderToken(order.token);
-        console.log('Token gerado:', order.token); // Debug
-
-        // Salvar o nome do cliente no AuthContext
-        setUser({ name: customerName });
-
-        // Gerar o payload do PIX (em produção, isso viria da API do banco)
-        const pixPayload = {
-          pixKey: 'SEU_PIX_AQUI', // Chave PIX da loja
-          description: `Pedido ${order.token}`,
-          merchantName: 'Cantinho do Sabor',
-          amount: amount.toFixed(2),
-          txid: order.token
-        };
-
-        // Gerar o QR code (em produção, o payload viria da API do banco)
-        const qrCode = await QRCode.toDataURL(JSON.stringify(pixPayload));
-        setQrCodeUrl(qrCode);
-      } catch (err) {
-        setError('Erro ao gerar QR Code. Por favor, tente novamente.');
-        console.error('Erro:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     generatePixQRCode();
-  }, [amount, customerName, cartItems, setUser]);
+  }, []);
+
+  const generatePixQRCode = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Gerar o payload do PIX (em produção, isso viria da API do banco)
+      const pixPayload = {
+        pixKey: 'SEU_PIX_AQUI', // Chave PIX da loja
+        description: `Pedido`,
+        merchantName: 'Cantinho do Sabor',
+        amount: amount.toFixed(2)
+      };
+
+      // Gerar o QR code
+      const qrCode = await QRCode.toDataURL(JSON.stringify(pixPayload));
+      setQrCodeUrl(qrCode);
+    } catch (err) {
+      setError('Erro ao gerar QR Code. Por favor, tente novamente.');
+      console.error('Erro:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleManualConfirmation = async () => {
     try {
-      if (!orderToken) {
-        console.error('Token não encontrado:', orderToken); // Debug
-        setError('Token do pedido não encontrado. Por favor, tente novamente.');
-        return;
+      setIsLoading(true);
+      setError(null);
+
+      // Criar o pedido no banco de dados
+      const order = await orderService.createOrder(customerName, cartItems);
+      if (!order.token) {
+        throw new Error('Token do pedido não foi gerado');
       }
+      
+      // Salvar o nome do cliente no AuthContext
+      setUser({ name: customerName });
 
-      console.log('Confirmando pedido com token:', orderToken); // Debug
-
-      const order = await orderService.getOrderByToken(orderToken);
-      console.log('Pedido encontrado:', order); // Debug
-
-      if (order?.id) {
-        await orderService.updateOrderStatus(order.id.toString(), 'paid');
-        clearCart();
-        console.log('Chamando onPaymentComplete com token:', orderToken); // Debug
-        onPaymentComplete(orderToken);
-      } else {
-        throw new Error('Pedido não encontrado');
-      }
+      // Atualizar o status do pedido para pago
+      await orderService.updateOrderStatus(order.id.toString(), 'paid');
+      clearCart();
+      onPaymentComplete(order.token);
     } catch (err) {
       console.error('Erro completo na confirmação:', err);
       setError('Erro ao confirmar pagamento. Por favor, tente novamente.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -143,8 +128,9 @@ export const PixPayment: React.FC<PixPaymentProps> = ({
               <button
                 onClick={handleManualConfirmation}
                 className="w-full py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                disabled={isLoading}
               >
-                Simular Confirmação do Pagamento
+                {isLoading ? 'Processando...' : 'Simular Confirmação do Pagamento'}
               </button>
             </div>
           </>

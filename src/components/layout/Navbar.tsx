@@ -51,19 +51,6 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Botão do menu mobile */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#3C2A1F]"
-                aria-label="Menu"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
-
               {/* Botão de tema */}
               <button
                 onClick={toggleTheme}
@@ -89,6 +76,19 @@ export default function Navbar() {
                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {totalItems}
                   </span>
+                )}
+              </button>
+
+              {/* Botão do menu mobile */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#3C2A1F]"
+                aria-label="Menu"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
                 )}
               </button>
             </div>

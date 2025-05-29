@@ -1,8 +1,6 @@
-import { Clock, RefreshCw, RotateCcw, ShoppingBag } from 'lucide-react';
+import { RefreshCw, ShoppingBag } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { orderService } from '../services/orderService';
 import { Order } from '../types/order';
@@ -12,9 +10,7 @@ export default function OrderHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isDarkMode } = useTheme();
-  const { addToCart } = useCart();
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchOrders();
@@ -38,32 +34,6 @@ export default function OrderHistoryPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleReorder = (order: Order) => {
-    if (!order.items) return;
-    
-    // Adicionar todos os itens do pedido ao carrinho
-    order.items.forEach(item => {
-      const product = {
-        id: item.product_id.toString(),
-        name: item.product_name,
-        price: item.price,
-        description: '',
-        image_url: '',
-        category_id: '0',
-        is_featured: false,
-        in_stock: true,
-        is_on_sale: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      for (let i = 0; i < item.quantity; i++) {
-        addToCart(product);
-      }
-    });
-    navigate('/carrinho');
   };
 
   const formatDate = (dateString: string) => {
@@ -147,84 +117,66 @@ export default function OrderHistoryPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
-        <h1 className={`text-2xl sm:text-3xl font-bold mb-4 sm:mb-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-          Histórico de Pedidos
-        </h1>
-        <div className="flex w-full sm:w-auto space-x-2">
-          <button
-            onClick={fetchOrders}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Atualizar
-          </button>
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            Histórico de Pedidos
+          </h1>
+          <div className="flex gap-2">
+            <button
+              onClick={fetchOrders}
+              className="inline-flex items-center justify-center px-3 py-1.5 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors"
+            >
+              Limpar Histórico
+            </button>
+            <button
+              onClick={fetchOrders}
+              className="inline-flex items-center justify-center px-3 py-1.5 bg-orange-500 text-white text-sm rounded hover:bg-orange-600 transition-colors"
+            >
+              <RefreshCw className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+              Atualizar
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="space-y-4 sm:space-y-6">
-        {orders.map((order) => (
-          <div
-            key={order.id}
-            className={`${
-              isDarkMode
-                ? 'bg-[#1a0f0a] border-[#2a1f1a]'
-                : 'bg-white border-gray-200'
-            } border rounded-2xl shadow-sm overflow-hidden`}
-          >
-            <div className={`p-4 sm:p-6 ${isDarkMode ? 'border-b border-[#2a1f1a]' : 'border-b border-gray-200'}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
-                  <div className="flex items-center space-x-2">
-                    <Clock className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-                    <span className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {formatDate(order.created_at)}
-                    </span>
-                  </div>
-                  <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Token: {order.token}
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleReorder(order)}
-                  className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 transition-colors"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Repetir Pedido
-                </button>
-              </div>
 
-              {order.items && order.items.length > 0 && (
-                <div className={`mt-4 ${isDarkMode ? 'border-t border-[#2a1f1a]' : 'border-t border-gray-200'} pt-4`}>
-                  <h3 className={`text-sm font-medium mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Itens do Pedido
-                  </h3>
-                  <div className="space-y-3">
-                    {order.items.map((item) => (
-                      <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between">
-                        <div className={`flex items-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                          <span className="font-medium mr-2">{item.quantity}x</span>
-                          <span>{item.product_name}</span>
-                        </div>
-                        <span className={`mt-1 sm:mt-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                          R$ {item.subtotal.toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
-                    <div className={`pt-3 mt-3 border-t ${isDarkMode ? 'border-[#2a1f1a]' : 'border-gray-200'}`}>
-                      <div className="flex justify-between items-center">
-                        <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Total</span>
-                        <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                          R$ {order.items.reduce((acc, item) => acc + item.subtotal, 0).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
+        {/* Container com scroll horizontal */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[600px]">
+            {/* Cabeçalho da tabela */}
+            <div className={`grid grid-cols-4 gap-4 py-2 px-3 text-sm font-medium border-b ${
+              isDarkMode ? 'text-gray-300 border-[#2a1f1a]' : 'text-gray-600 border-gray-200'
+            }`}>
+              <div>Pedido</div>
+              <div>Cliente</div>
+              <div>Data</div>
+              <div className="text-right">$</div>
+            </div>
+
+            {/* Lista de pedidos */}
+            <div className="space-y-1 mt-1">
+              {orders.map((order) => {
+                const totalValue = order.items?.reduce((acc, item) => acc + item.subtotal, 0) || 0;
+                
+                return (
+                  <div
+                    key={order.id}
+                    className={`grid grid-cols-4 gap-4 py-2 px-3 text-sm ${
+                      isDarkMode
+                        ? 'bg-[#1a0f0a] text-gray-300 hover:bg-[#2a1f1a]'
+                        : 'bg-white text-gray-600 hover:bg-gray-50'
+                    } transition-colors`}
+                  >
+                    <div className="truncate">{order.token}</div>
+                    <div className="truncate">adm</div>
+                    <div className="truncate">{formatDate(order.created_at)}</div>
+                    <div className="text-right">R$ {totalValue.toFixed(2)}</div>
                   </div>
-                </div>
-              )}
+                );
+              })}
             </div>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );

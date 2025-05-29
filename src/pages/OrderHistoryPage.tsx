@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { Clock, RefreshCw, RotateCcw, ShoppingBag } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Clock, ShoppingBag, RotateCcw, RefreshCw } from 'lucide-react';
-import { Order } from '../types/order';
 import { orderService } from '../services/orderService';
-import { useAuth } from '../contexts/AuthContext';
+import { Order } from '../types/order';
 
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -147,20 +147,22 @@ export default function OrderHistoryPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
+        <h1 className={`text-2xl sm:text-3xl font-bold mb-4 sm:mb-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           Histórico de Pedidos
         </h1>
-        <button
-          onClick={fetchOrders}
-          className="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </button>
+        <div className="flex w-full sm:w-auto space-x-2">
+          <button
+            onClick={fetchOrders}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </button>
+        </div>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {orders.map((order) => (
           <div
             key={order.id}
@@ -170,59 +172,56 @@ export default function OrderHistoryPage() {
                 : 'bg-white border-gray-200'
             } border rounded-2xl shadow-sm overflow-hidden`}
           >
-            <div className={`p-6 ${isDarkMode ? 'border-b border-[#2a1f1a]' : 'border-b border-gray-200'}`}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <Clock className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-                  <span className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {formatDate(order.created_at)}
+            <div className={`p-4 sm:p-6 ${isDarkMode ? 'border-b border-[#2a1f1a]' : 'border-b border-gray-200'}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
+                  <div className="flex items-center space-x-2">
+                    <Clock className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                    <span className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {formatDate(order.created_at)}
+                    </span>
+                  </div>
+                  <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Token: {order.token}
                   </span>
                 </div>
-                <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Token: {order.token}
-                </span>
+                <button
+                  onClick={() => handleReorder(order)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Repetir Pedido
+                </button>
               </div>
 
               {order.items && order.items.length > 0 && (
                 <div className={`mt-4 ${isDarkMode ? 'border-t border-[#2a1f1a]' : 'border-t border-gray-200'} pt-4`}>
-                  <h3 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <h3 className={`text-sm font-medium mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Itens do Pedido
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {order.items.map((item) => (
-                      <div key={item.id} className="flex justify-between">
-                        <span className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {item.quantity}x {item.product_name}
-                        </span>
-                        <span className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between">
+                        <div className={`flex items-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <span className="font-medium mr-2">{item.quantity}x</span>
+                          <span>{item.product_name}</span>
+                        </div>
+                        <span className={`mt-1 sm:mt-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                           R$ {item.subtotal.toFixed(2)}
                         </span>
                       </div>
                     ))}
+                    <div className={`pt-3 mt-3 border-t ${isDarkMode ? 'border-[#2a1f1a]' : 'border-gray-200'}`}>
+                      <div className="flex justify-between items-center">
+                        <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Total</span>
+                        <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          R$ {order.items.reduce((acc, item) => acc + item.subtotal, 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
-
-              <div className="mt-6 flex items-center justify-between">
-                <div>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Status: {order.status === 'pending' ? 'Pendente' : 
-                            order.status === 'paid' ? 'Pago' :
-                            order.status === 'completed' ? 'Concluído' : 
-                            order.status === 'cancelled' ? 'Cancelado' : order.status}
-                  </p>
-                  <p className={`text-lg font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                    Total: R$ {order.total.toFixed(2)}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleReorder(order)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Pedir Novamente</span>
-                </button>
-              </div>
             </div>
           </div>
         ))}

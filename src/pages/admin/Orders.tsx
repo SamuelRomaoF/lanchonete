@@ -66,8 +66,8 @@ export default function Orders() {
         console.error('Erro ao buscar pedidos:', error.message);
         setError(`Falha ao carregar pedidos: ${error.message}`);
       } else {
-        console.error('Erro ao buscar pedidos:', error);
-        setError('Falha ao carregar pedidos. Por favor, tente novamente.');
+      console.error('Erro ao buscar pedidos:', error);
+      setError('Falha ao carregar pedidos. Por favor, tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -254,13 +254,13 @@ export default function Orders() {
             <Trash2 size={16} />
             Limpar Histórico
           </button>
-          <button 
-            onClick={fetchOrders}
+        <button 
+          onClick={fetchOrders}
             className="flex items-center gap-2 bg-[#e67e22] hover:bg-[#d35400] text-white px-3 py-1.5 rounded transition-colors"
-          >
-            <RefreshCwIcon size={16} className={loading ? 'animate-spin' : ''} />
-            Atualizar
-          </button>
+        >
+          <RefreshCwIcon size={16} className={loading ? 'animate-spin' : ''} />
+          Atualizar
+        </button>
         </div>
       </div>
       

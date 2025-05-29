@@ -27,29 +27,29 @@ export const PixPayment: React.FC<PixPaymentProps> = ({
     generatePixQRCode();
   }, []);
 
-  const generatePixQRCode = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+    const generatePixQRCode = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      // Gerar o payload do PIX (em produção, isso viria da API do banco)
-      const pixPayload = {
-        pixKey: 'SEU_PIX_AQUI', // Chave PIX da loja
+        // Gerar o payload do PIX (em produção, isso viria da API do banco)
+        const pixPayload = {
+          pixKey: 'SEU_PIX_AQUI', // Chave PIX da loja
         description: `Pedido`,
-        merchantName: 'Cantinho do Sabor',
+          merchantName: 'Cantinho do Sabor',
         amount: amount.toFixed(2)
-      };
+        };
 
       // Gerar o QR code
-      const qrCode = await QRCode.toDataURL(JSON.stringify(pixPayload));
-      setQrCodeUrl(qrCode);
-    } catch (err) {
-      setError('Erro ao gerar QR Code. Por favor, tente novamente.');
-      console.error('Erro:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        const qrCode = await QRCode.toDataURL(JSON.stringify(pixPayload));
+        setQrCodeUrl(qrCode);
+      } catch (err) {
+        setError('Erro ao gerar QR Code. Por favor, tente novamente.');
+        console.error('Erro:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   const handleManualConfirmation = async () => {
     try {
@@ -66,8 +66,8 @@ export const PixPayment: React.FC<PixPaymentProps> = ({
       setUser({ name: customerName });
 
       // Atualizar o status do pedido para pago
-      await orderService.updateOrderStatus(order.id.toString(), 'paid');
-      clearCart();
+        await orderService.updateOrderStatus(order.id.toString(), 'paid');
+        clearCart();
       onPaymentComplete(order.token);
     } catch (err) {
       console.error('Erro completo na confirmação:', err);

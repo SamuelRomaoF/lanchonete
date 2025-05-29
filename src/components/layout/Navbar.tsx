@@ -1,6 +1,6 @@
-import { Moon, ShoppingCart, Sun, User, Utensils } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Menu, Moon, ShoppingCart, Sun, X } from 'lucide-react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { useSupabase } from '../../contexts/SupabaseContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -10,24 +10,10 @@ export default function Navbar() {
   const { isDarkMode, toggleTheme } = useTheme();
   const { totalItems } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useSupabase();
-  const navigate = useNavigate();
-
-  // Debug: Verificar os dados do usuário
-  useEffect(() => {
-    console.log('Dados do usuário:', user);
-    console.log('ID do usuário:', user?.id);
-    console.log('Email do usuário:', user?.email);
-    console.log('App metadata:', user?.app_metadata);
-    console.log('É admin?', user?.app_metadata?.role === 'admin');
-  }, [user]);
 
   const isAdmin = user?.app_metadata?.role === 'admin';
-  const isLoggedIn = !!user;
-
-  const handleLoginClick = () => {
-    navigate('/login');
-  };
 
   return (
     <>
@@ -38,11 +24,11 @@ export default function Navbar() {
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
               <Link to="/" className="flex items-center space-x-2">
-                <Utensils className="w-6 h-6 text-orange-500" />
                 <span className="text-xl font-bold text-orange-500">Cantinho do Sabor</span>
               </Link>
             </div>
 
+            {/* Links de navegação para desktop */}
             <div className="hidden md:flex space-x-8 items-center">
               <Link to="/" className="hover:text-orange-500 transition-colors">
                 Início
@@ -53,25 +39,36 @@ export default function Navbar() {
               <Link to="/pedidos" className="hover:text-orange-500 transition-colors">
                 Meus Pedidos
               </Link>
+              {isAdmin && (
+                <Link 
+                  to="/admin" 
+                  className="hover:text-orange-500 transition-colors"
+                  title="Área Administrativa"
+                >
+                  Administração
+                </Link>
+              )}
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* Botão do menu mobile */}
               <button
-                onClick={handleLoginClick}
-                className={`p-2 rounded-full ${
-                  isDarkMode ? 'hover:bg-[#3C2A1F]' : 'hover:bg-gray-100'
-                }`}
-                aria-label="Login"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-[#3C2A1F]"
+                aria-label="Menu"
               >
-                <User className="h-6 w-6" />
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
               </button>
 
+              {/* Botão de tema */}
               <button
                 onClick={toggleTheme}
-                className={`p-2 rounded-full ${
-                  isDarkMode ? 'hover:bg-[#3C2A1F]' : 'hover:bg-gray-100'
-                }`}
-                aria-label={isDarkMode ? 'Modo claro' : 'Modo escuro'}
+                className={`p-2 rounded-full ${isDarkMode ? 'hover:bg-[#3C2A1F]' : 'hover:bg-gray-100'}`}
+                aria-label={isDarkMode ? 'Ativar modo claro' : 'Ativar modo escuro'}
               >
                 {isDarkMode ? (
                   <Sun className="h-6 w-6" />
@@ -80,6 +77,7 @@ export default function Navbar() {
                 )}
               </button>
 
+              {/* Botão do carrinho */}
               <button 
                 onClick={() => setIsCartOpen(true)} 
                 className={`p-2 rounded-full ${
@@ -93,20 +91,46 @@ export default function Navbar() {
                   </span>
                 )}
               </button>
-
-              {isLoggedIn && isAdmin && (
-                <Link 
-                  to="/admin" 
-                  className={`p-2 rounded-full transition-colors ${
-                    isDarkMode ? 'hover:bg-[#46342e]' : 'hover:bg-gray-200'
-                  }`}
-                  title="Área Administrativa"
-                >
-                  <User className="w-5 h-5 text-orange-500" />
-                </Link>
-              )}
             </div>
           </div>
+
+          {/* Menu mobile */}
+          {isMobileMenuOpen && (
+            <div className={`md:hidden py-4 ${isDarkMode ? 'bg-[#2C1A10]' : 'bg-white'}`}>
+              <div className="flex flex-col space-y-4 px-4">
+                <Link 
+                  to="/" 
+                  className="hover:text-orange-500 transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Início
+                </Link>
+                <Link 
+                  to="/cardapio" 
+                  className="hover:text-orange-500 transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Cardápio
+                </Link>
+                <Link 
+                  to="/pedidos" 
+                  className="hover:text-orange-500 transition-colors py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Meus Pedidos
+                </Link>
+                {isAdmin && (
+                  <Link 
+                    to="/admin" 
+                    className="hover:text-orange-500 transition-colors py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Administração
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 

@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useTheme } from '../../contexts/ThemeContext';
+import { Moon, ShoppingCart, Sun, User, Utensils } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
-import { ShoppingCart, Sun, Moon, Utensils, User } from 'lucide-react';
-import CartDrawer from '../ui/CartDrawer';
 import { useSupabase } from '../../contexts/SupabaseContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import CartDrawer from '../ui/CartDrawer';
 
 export default function Navbar() {
   const { isDarkMode, toggleTheme } = useTheme();
   const { totalItems } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { user } = useSupabase();
+  const navigate = useNavigate();
 
   // Debug: Verificar os dados do usuário
   useEffect(() => {
@@ -23,6 +24,10 @@ export default function Navbar() {
 
   const isAdmin = user?.app_metadata?.role === 'admin';
   const isLoggedIn = !!user;
+
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
 
   return (
     <>
@@ -52,26 +57,38 @@ export default function Navbar() {
 
             <div className="flex items-center space-x-4">
               <button
-                onClick={toggleTheme}
-                className={`p-2 rounded-full transition-colors ${
-                  isDarkMode ? 'hover:bg-[#46342e]' : 'hover:bg-gray-200'
+                onClick={handleLoginClick}
+                className={`p-2 rounded-full ${
+                  isDarkMode ? 'hover:bg-[#3C2A1F]' : 'hover:bg-gray-100'
                 }`}
-                aria-label="Toggle theme"
+                aria-label="Login"
+              >
+                <User className="h-6 w-6" />
+              </button>
+
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-full ${
+                  isDarkMode ? 'hover:bg-[#3C2A1F]' : 'hover:bg-gray-100'
+                }`}
+                aria-label={isDarkMode ? 'Modo claro' : 'Modo escuro'}
               >
                 {isDarkMode ? (
-                  <Sun className="w-5 h-5" />
+                  <Sun className="h-6 w-6" />
                 ) : (
-                  <Moon className="w-5 h-5" />
+                  <Moon className="h-6 w-6" />
                 )}
               </button>
 
               <button 
                 onClick={() => setIsCartOpen(true)} 
-                className="relative p-2"
+                className={`p-2 rounded-full ${
+                  isDarkMode ? 'hover:bg-[#3C2A1F]' : 'hover:bg-gray-100'
+                } relative`}
               >
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="h-6 w-6" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}

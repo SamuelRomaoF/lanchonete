@@ -8,11 +8,11 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
-    port: 3000,
+    port: 3001,
     strictPort: true
   },
   preview: {
-    port: 3000,
+    port: 3001,
     strictPort: true
   },
   base: '/'

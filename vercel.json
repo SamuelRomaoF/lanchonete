@@ -1,31 +1,12 @@
 {
   "version": 2,
-  "routes": [
-    { "handle": "filesystem" },
-    {
-      "src": "/login",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/admin.*",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/cardapio",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/carrinho",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/pedidos",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/login", "destination": "/index.html" },
+    { "source": "/admin(.*)", "destination": "/index.html" },
+    { "source": "/cardapio", "destination": "/index.html" },
+    { "source": "/carrinho", "destination": "/index.html" },
+    { "source": "/pedidos", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {

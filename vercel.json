@@ -1,8 +1,30 @@
 {
-  "rewrites": [
+  "version": 2,
+  "routes": [
+    { "handle": "filesystem" },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/login",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/admin.*",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/cardapio",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/carrinho",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/pedidos",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "headers": [
@@ -14,13 +36,6 @@
           "value": "s-maxage=1, stale-while-revalidate"
         }
       ]
-    }
-  ],
-  "routes": [
-    {
-      "src": "/[^.]+",
-      "dest": "/",
-      "status": 200
     }
   ],
   "buildCommand": "npm run build",

@@ -104,16 +104,25 @@ export default function Categories() {
       }
 
       const slug = generateSlug(name);
+      const categoryData: {
+        name: string;
+        slug: string;
+        description?: string;
+      } = {
+        name: name.trim(),
+        slug
+      };
+
+      // Só adiciona description se não estiver vazio
+      if (description.trim()) {
+        categoryData.description = description.trim();
+      }
       
       if (currentCategory) {
         // Update existing category
         const { error } = await supabase
           .from('categories')
-          .update({
-            name,
-            description,
-            slug
-          })
+          .update(categoryData)
           .eq('id', currentCategory.id);
           
         if (error) throw error;
@@ -121,9 +130,7 @@ export default function Categories() {
         // Create new category
         const { error } = await supabase
           .from('categories')
-          .insert([
-            { name, description, slug }
-          ]);
+          .insert([categoryData]);
           
         if (error) throw error;
       }

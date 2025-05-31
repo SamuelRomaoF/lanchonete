@@ -213,17 +213,28 @@ export default function Orders() {
   }
   
   function getStatusBadgeClass(status: string) {
+    const isDark = isDarkMode;
     switch (status) {
       case 'pending':
-        return 'bg-yellow-900 text-yellow-200';
+        return isDark 
+          ? 'bg-yellow-900 text-yellow-200' 
+          : 'bg-yellow-100 text-yellow-800';
       case 'processing':
-        return 'bg-blue-900 text-blue-200';
+        return isDark 
+          ? 'bg-blue-900 text-blue-200' 
+          : 'bg-blue-100 text-blue-800';
       case 'completed':
-        return 'bg-green-900 text-green-200';
+        return isDark 
+          ? 'bg-green-900 text-green-200' 
+          : 'bg-green-100 text-green-800';
       case 'cancelled':
-        return 'bg-red-900 text-red-200';
+        return isDark 
+          ? 'bg-red-900 text-red-200' 
+          : 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-900 text-gray-200';
+        return isDark 
+          ? 'bg-gray-900 text-gray-200' 
+          : 'bg-gray-100 text-gray-800';
     }
   }
   
@@ -273,12 +284,12 @@ export default function Orders() {
       {/* Order Details Modal */}
       {showDetails && selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#2a211c] rounded-lg border border-[#5a443c] max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-[#5a443c] flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Detalhes do Pedido #{selectedOrder.id}</h2>
+          <div className={`${cardBg} rounded-lg border ${cardBorder} max-w-2xl w-full max-h-[90vh] overflow-y-auto`}>
+            <div className={`p-4 border-b ${cardBorder} flex justify-between items-center`}>
+              <h2 className={`text-xl font-semibold ${textColor}`}>Detalhes do Pedido #{selectedOrder.id}</h2>
               <button 
                 onClick={() => setShowDetails(false)}
-                className="p-1 hover:bg-[#46342e] rounded-full transition-colors"
+                className={`p-1 hover:bg-opacity-10 hover:bg-black rounded-full transition-colors ${textColor}`}
               >
                 <Eye size={20} />
               </button>
@@ -287,19 +298,19 @@ export default function Orders() {
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm text-gray-400">Cliente</h3>
-                  <p>{selectedOrder.customer_name}</p>
+                  <h3 className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Cliente</h3>
+                  <p className={textColor}>{selectedOrder.customer_name}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm text-gray-400">Telefone</h3>
-                  <p>{selectedOrder.customer_phone || 'Não informado'}</p>
+                  <h3 className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Telefone</h3>
+                  <p className={textColor}>{selectedOrder.customer_phone || 'Não informado'}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm text-gray-400">Data</h3>
-                  <p>{formatDate(selectedOrder.created_at)}</p>
+                  <h3 className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Data</h3>
+                  <p className={textColor}>{formatDate(selectedOrder.created_at)}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm text-gray-400">Status</h3>
+                  <h3 className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Status</h3>
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-1 rounded text-xs ${getStatusBadgeClass(selectedOrder.status)}`}>
                       {getStatusLabel(selectedOrder.status)}
@@ -307,7 +318,7 @@ export default function Orders() {
                     <select
                       value={selectedOrder.status}
                       onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
-                      className="bg-[#46342e] border border-[#5a443c] rounded p-1 text-sm"
+                      className={`${cardBg} border ${cardBorder} rounded p-1 text-sm ${textColor}`}
                     >
                       <option value="pending">Pendente</option>
                       <option value="processing">Processando</option>
@@ -319,30 +330,30 @@ export default function Orders() {
               </div>
               
               <div>
-                <h3 className="text-lg font-medium mb-2">Itens do Pedido</h3>
+                <h3 className={`text-lg font-medium mb-2 ${textColor}`}>Itens do Pedido</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-[#5a443c]">
-                        <th className="py-2 text-left">Produto</th>
-                        <th className="py-2 text-center">Qtd</th>
-                        <th className="py-2 text-right">Preço</th>
-                        <th className="py-2 text-right">Subtotal</th>
+                      <tr className={`border-b ${cardBorder}`}>
+                        <th className={`py-2 text-left ${textColor}`}>Produto</th>
+                        <th className={`py-2 text-center ${textColor}`}>Qtd</th>
+                        <th className={`py-2 text-right ${textColor}`}>Preço</th>
+                        <th className={`py-2 text-right ${textColor}`}>Subtotal</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedOrder.items && selectedOrder.items.length > 0 ? (
                         selectedOrder.items.map((item) => (
-                          <tr key={item.id} className="border-b border-[#5a443c]">
-                            <td className="py-2">{item.product_name}</td>
-                            <td className="py-2 text-center">{item.quantity}</td>
-                            <td className="py-2 text-right">R$ {item.price.toFixed(2)}</td>
-                            <td className="py-2 text-right">R$ {item.subtotal.toFixed(2)}</td>
+                          <tr key={item.id} className={`border-b ${cardBorder}`}>
+                            <td className={`py-2 ${textColor}`}>{item.product_name}</td>
+                            <td className={`py-2 text-center ${textColor}`}>{item.quantity}</td>
+                            <td className={`py-2 text-right ${textColor}`}>R$ {item.price.toFixed(2)}</td>
+                            <td className={`py-2 text-right ${textColor}`}>R$ {item.subtotal.toFixed(2)}</td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} className="py-4 text-center text-gray-400">
+                          <td colSpan={4} className={`py-4 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                             Nenhum item encontrado
                           </td>
                         </tr>
@@ -350,8 +361,8 @@ export default function Orders() {
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td colSpan={3} className="py-2 text-right font-medium">Total</td>
-                        <td className="py-2 text-right font-medium">R$ {selectedOrder.total.toFixed(2)}</td>
+                        <td colSpan={3} className={`py-2 text-right font-medium ${textColor}`}>Total</td>
+                        <td className={`py-2 text-right font-medium ${textColor}`}>R$ {selectedOrder.total.toFixed(2)}</td>
                       </tr>
                     </tfoot>
                   </table>
@@ -359,10 +370,10 @@ export default function Orders() {
               </div>
             </div>
             
-            <div className="p-4 border-t border-[#5a443c] flex justify-end">
+            <div className={`p-4 border-t ${cardBorder} flex justify-end`}>
               <button
                 onClick={() => setShowDetails(false)}
-                className="px-4 py-2 bg-[#46342e] hover:bg-[#5a443c] rounded transition-colors"
+                className={`px-4 py-2 ${cardBg} border ${cardBorder} hover:bg-opacity-80 rounded transition-colors ${textColor}`}
               >
                 Fechar
               </button>
@@ -420,48 +431,48 @@ export default function Orders() {
       )}
       
       {/* Orders List */}
-      <div className="bg-[#2a211c] rounded-lg border border-[#5a443c] overflow-hidden">
+      <div className={`${cardBg} rounded-lg border ${cardBorder} overflow-hidden`}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#5a443c]">
-                <th className="py-3 px-4 text-left">Pedido</th>
-                <th className="py-3 px-4 text-left">Cliente</th>
-                <th className="py-3 px-4 text-left">Data</th>
-                <th className="py-3 px-4 text-left">Status</th>
-                <th className="py-3 px-4 text-right">Total</th>
-                <th className="py-3 px-4 text-right">Ações</th>
+              <tr className={`border-b ${cardBorder}`}>
+                <th className={`py-3 px-4 text-left ${textColor}`}>Pedido</th>
+                <th className={`py-3 px-4 text-left ${textColor}`}>Cliente</th>
+                <th className={`py-3 px-4 text-left ${textColor}`}>Data</th>
+                <th className={`py-3 px-4 text-left ${textColor}`}>Status</th>
+                <th className={`py-3 px-4 text-right ${textColor}`}>Total</th>
+                <th className={`py-3 px-4 text-right ${textColor}`}>Ações</th>
               </tr>
             </thead>
             <tbody>
               {loading && !orders.length ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-400">
+                  <td colSpan={6} className={`py-8 text-center ${textColor}`}>
                     Carregando pedidos...
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-400">
+                  <td colSpan={6} className={`py-8 text-center ${textColor}`}>
                     Nenhum pedido encontrado
                   </td>
                 </tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order.id} className="border-b border-[#5a443c]">
-                    <td className="py-3 px-4">{`#${order.id}`}</td>
-                    <td className="py-3 px-4">{order.customer_name}</td>
-                    <td className="py-3 px-4">{formatDate(order.created_at)}</td>
+                  <tr key={order.id} className={`border-b ${cardBorder} hover:${cardBg === 'bg-white' ? 'bg-gray-50' : 'bg-[#3C2A1F]'}`}>
+                    <td className={`py-3 px-4 ${textColor}`}>{`#${order.id}`}</td>
+                    <td className={`py-3 px-4 ${textColor}`}>{order.customer_name}</td>
+                    <td className={`py-3 px-4 ${textColor}`}>{formatDate(order.created_at)}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded text-xs ${getStatusBadgeClass(order.status)}`}>
                         {getStatusLabel(order.status)}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">R$ {order.total.toFixed(2)}</td>
+                    <td className={`py-3 px-4 text-right ${textColor}`}>R$ {order.total.toFixed(2)}</td>
                     <td className="py-3 px-4 text-right">
                       <button
                         onClick={() => handleViewDetails(order)}
-                        className="p-1 hover:bg-[#46342e] rounded transition-colors"
+                        className={`p-1 hover:bg-opacity-10 hover:bg-black rounded transition-colors ${textColor}`}
                       >
                         <Eye size={16} />
                       </button>

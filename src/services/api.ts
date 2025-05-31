@@ -19,7 +19,9 @@ export async function getProducts(categorySlug?: string): Promise<Product[]> {
   let query = supabase.from('products').select(`
     *,
     categories (*)
-  `);
+  `)
+  .is('deleted_at', null)
+  .eq('in_stock', true);
 
   if (categorySlug && categorySlug !== 'todos') {
     query = query.eq('categories.slug', categorySlug);
@@ -39,6 +41,8 @@ export async function getPopularProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
     .select('*')
+    .is('deleted_at', null)
+    .eq('in_stock', true)
     .eq('is_popular', true)
     .order('name');
 

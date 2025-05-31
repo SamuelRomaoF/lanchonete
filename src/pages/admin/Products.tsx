@@ -75,6 +75,7 @@ export default function Products() {
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .is('deleted_at', null)
         .order('name');
         
       if (error) throw error;
@@ -266,7 +267,7 @@ export default function Products() {
     try {
       const { error } = await supabase
         .from('products')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', productToDelete);
         
       if (error) throw error;
@@ -508,59 +509,108 @@ export default function Products() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col space-y-2">
-                    <label className={`flex items-center space-x-2 ${textColor}`}>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                    <div 
+                      onClick={() => setIsFeatured(!isFeatured)}
+                      className={`p-4 rounded-lg border ${cardBorder} ${cardBg} relative cursor-pointer transition-all duration-200 hover:border-orange-500 ${
+                        isFeatured ? 'border-orange-500 bg-orange-50 dark:bg-[#3C2A1F]' : ''
+                      }`}
+                    >
                       <input
                         type="checkbox"
                         checked={isFeatured}
                         onChange={(e) => setIsFeatured(e.target.checked)}
-                        className="rounded text-orange-500 focus:ring-orange-500"
+                        className="absolute top-4 right-4 rounded text-orange-500 focus:ring-orange-500 pointer-events-none"
                       />
-                      <span>Produto em Destaque</span>
-                    </label>
+                      <div className="flex flex-col items-center text-center">
+                        <Star className={`w-8 h-8 mb-2 ${isFeatured ? 'text-yellow-500' : mutedTextColor}`} />
+                        <span className={`text-sm font-medium ${textColor}`}>Produto em Destaque</span>
+                        <p className={`text-xs mt-1 ${mutedTextColor}`}>
+                          Aparece em seções especiais
+                        </p>
+                      </div>
+                    </div>
 
-                    <label className={`flex items-center space-x-2 ${textColor}`}>
+                    <div 
+                      onClick={() => setInStock(!inStock)}
+                      className={`p-4 rounded-lg border ${cardBorder} ${cardBg} relative cursor-pointer transition-all duration-200 hover:border-orange-500 ${
+                        inStock ? 'border-green-500 bg-green-50 dark:bg-[#2C3B2A]' : 'border-red-500 bg-red-50 dark:bg-[#3B2A2A]'
+                      }`}
+                    >
                       <input
                         type="checkbox"
                         checked={inStock}
                         onChange={(e) => setInStock(e.target.checked)}
-                        className="rounded text-orange-500 focus:ring-orange-500"
+                        className="absolute top-4 right-4 rounded text-orange-500 focus:ring-orange-500 pointer-events-none"
                       />
-                      <span>Em Estoque</span>
-                    </label>
+                      <div className="flex flex-col items-center text-center">
+                        <div className={`w-8 h-8 mb-2 flex items-center justify-center rounded-full ${
+                          inStock ? 'bg-green-100' : 'bg-red-100'
+                        }`}>
+                          <span className={`text-lg font-bold ${
+                            inStock ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {inStock ? '✓' : '×'}
+                          </span>
+                        </div>
+                        <span className={`text-sm font-medium ${textColor}`}>Disponível em Estoque</span>
+                        <p className={`text-xs mt-1 ${mutedTextColor}`}>
+                          {inStock ? 'Visível no cardápio' : 'Oculto do cardápio'}
+                        </p>
+                      </div>
+                    </div>
 
-                    <label className={`flex items-center space-x-2 ${textColor}`}>
+                    <div 
+                      onClick={() => setIsOnSale(!isOnSale)}
+                      className={`p-4 rounded-lg border ${cardBorder} ${cardBg} relative cursor-pointer transition-all duration-200 hover:border-orange-500 ${
+                        isOnSale ? 'border-orange-500 bg-orange-50 dark:bg-[#3C2A1F]' : ''
+                      }`}
+                    >
                       <input
                         type="checkbox"
                         checked={isOnSale}
                         onChange={(e) => setIsOnSale(e.target.checked)}
-                        className="rounded text-orange-500 focus:ring-orange-500"
+                        className="absolute top-4 right-4 rounded text-orange-500 focus:ring-orange-500 pointer-events-none"
                       />
-                      <span>Em Promoção</span>
-                    </label>
-
-                    {isOnSale && (
-                      <div className="mt-2">
-                        <label htmlFor="oldPrice" className={`block text-sm font-medium ${textColor}`}>
-                          Preço Original
-                        </label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className={`text-gray-500 sm:text-sm`}>R$</span>
-                          </div>
-                          <input
-                            type="number"
-                            id="oldPrice"
-                            value={oldPrice}
-                            onChange={(e) => setOldPrice(e.target.value)}
-                            step="0.01"
-                            min="0"
-                            className={`block w-full pl-10 pr-3 py-2 rounded-md ${inputBg} ${inputBorder} shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-500 focus:ring-opacity-50 ${textColor}`}
-                          />
+                      <div className="flex flex-col items-center text-center">
+                        <div className={`w-8 h-8 mb-2 flex items-center justify-center rounded-full ${
+                          isOnSale ? 'bg-orange-100' : 'bg-gray-100'
+                        }`}>
+                          <span className={`text-lg font-bold ${
+                            isOnSale ? 'text-orange-600' : 'text-gray-400'
+                          }`}>
+                            %
+                          </span>
                         </div>
+                        <span className={`text-sm font-medium ${textColor}`}>Em Promoção</span>
+                        <p className={`text-xs mt-1 ${mutedTextColor}`}>
+                          Exibe preço original riscado
+                        </p>
                       </div>
-                    )}
+                    </div>
                   </div>
+
+                  {isOnSale && (
+                    <div className="mt-4">
+                      <label htmlFor="oldPrice" className={`block text-sm font-medium ${textColor}`}>
+                        Preço Original
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className={`text-gray-500 sm:text-sm`}>R$</span>
+                        </div>
+                        <input
+                          type="number"
+                          id="oldPrice"
+                          value={oldPrice}
+                          onChange={(e) => setOldPrice(e.target.value)}
+                          step="0.01"
+                          min="0"
+                          className={`block w-full pl-10 pr-3 py-2 rounded-md ${inputBg} ${inputBorder} shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-500 focus:ring-opacity-50 ${textColor}`}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="mt-6 flex justify-end space-x-3">

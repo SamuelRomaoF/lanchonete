@@ -17,6 +17,7 @@ export interface Product {
   is_on_sale: boolean;
   old_price?: number;
   created_at?: string;
+  deleted_at?: string;
 }
 
 export interface CartItem {

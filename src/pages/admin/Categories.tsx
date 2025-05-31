@@ -8,6 +8,19 @@ interface Category {
   name: string;
   description: string;
   created_at: string;
+  slug: string;
+}
+
+// Função auxiliar para gerar slug
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/--+/g, '-')
+    .trim();
 }
 
 export default function Categories() {
@@ -86,14 +99,30 @@ export default function Categories() {
     setLoading(true);
     
     try {
+      if (!name.trim()) {
+        throw new Error('Nome é obrigatório');
+      }
+
+      const slug = generateSlug(name);
+      const categoryData: {
+        name: string;
+        slug: string;
+        description?: string;
+      } = {
+        name: name.trim(),
+        slug
+      };
+
+      // Só adiciona description se não estiver vazio
+      if (description.trim()) {
+        categoryData.description = description.trim();
+      }
+      
       if (currentCategory) {
         // Update existing category
         const { error } = await supabase
           .from('categories')
-          .update({
-            name,
-            description,
-          })
+          .update(categoryData)
           .eq('id', currentCategory.id);
           
         if (error) throw error;
@@ -101,9 +130,7 @@ export default function Categories() {
         // Create new category
         const { error } = await supabase
           .from('categories')
-          .insert([
-            { name, description }
-          ]);
+          .insert([categoryData]);
           
         if (error) throw error;
       }
